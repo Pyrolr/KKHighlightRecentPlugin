@@ -94,7 +94,59 @@
 {
     if ([item respondsToSelector:@selector(fileURL)]) {
         self.focusedFileUrl = [item fileURL];
-
+        
+        if (self.focusedFileUrl) {
+            //            NSLog(@"Current File %@",self.focusedFileUrl);
+            NSString *userDesktopPath = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES)[0];
+            
+            NSString *strLogPath = [userDesktopPath stringByAppendingPathComponent:@"RecentFiles.txt"];
+            
+            NSError *error = nil;
+            
+            NSString *strFileName = [NSString stringWithFormat:@"## %@ ##\r\n",self.focusedFileUrl.lastPathComponent];
+            
+            NSFileManager *fileManager = [NSFileManager defaultManager];
+            if(![fileManager fileExistsAtPath:strLogPath])
+            {
+                [strFileName writeToFile:strLogPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
+            }
+            else
+            {
+                NSFileHandle *myHandle = [NSFileHandle fileHandleForWritingAtPath:strLogPath];
+                [myHandle seekToEndOfFile];
+                [myHandle writeData:[strFileName dataUsingEncoding:NSUTF8StringEncoding]];
+            }
+            
+            //            NSString *strFile = [NSString stringWithContentsOfURL:self.focusedFileUrl encoding:NSUTF8StringEncoding error:nil];
+            // NSLog(@"Current File %@",strFile);
+            NSFileHandle *myHandle = [NSFileHandle fileHandleForWritingAtPath:strLogPath];
+            [myHandle seekToEndOfFile];
+            [myHandle writeData:[self.focusedFileUrl.lastPathComponent dataUsingEncoding:NSUTF8StringEncoding]];
+            
+            if (error) {
+                NSLog(@"Error %@",error.localizedDescription);
+            }
+            
+            //            NSArray* temp = [NSArray arrayWithContentsOfFile:strLogPath];
+            //            if (temp) {
+            //                NSMutableSet* setFiles = [NSMutableSet setWithArray:temp];
+            //                [setFiles addObject:self.focusedFileUrl];
+            //                NSArray* temp = setFiles.allObjects;
+            //
+            //                if (temp) {
+            //                    [temp writeToFile:strLogPath atomically:YES];
+            //                }
+            //            } else {
+            //                NSSet *setFiles = [NSSet setWithObject:self.focusedFileUrl];
+            //                NSArray* temp = setFiles.allObjects;
+            //
+            //                if (temp) {
+            //                    [temp writeToFile:strLogPath atomically:YES];
+            //                }
+            //
+            //            }
+        }
+        
         if (self.focusedFileUrl && ![self.highlightsForFileUrls objectForKey:self.focusedFileUrl]) {
             [self.highlightsForFileUrls setObject:@(self.highlightPrecision) forKey:self.focusedFileUrl];
         }
